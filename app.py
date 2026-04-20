@@ -10,7 +10,7 @@ with open('rf_model.pkl', 'rb') as file:
 
 # Load the label encoders
 # Assuming 'label_encoders.pkl' is in the same directory
-with open('label_encoders (1).pkl', 'rb') as file: # Corrected filename here
+with open('label_encoders.pkl', 'rb') as file: # Corrected filename here
     label_encoders = pickle.load(file)
 
 st.title('Salary Prediction App')
