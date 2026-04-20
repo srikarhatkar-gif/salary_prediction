@@ -83,7 +83,7 @@ if st.button('Predict Salary'):
     if processed_input is not None:
         try:
             prediction = model.predict(processed_input)[0]
-            st.success(f"💵 Predicted Salary: ${prediction:,.2f}")
+            st.success(f"💵 Predicted Salary: INR{prediction:,.2f}")
         except Exception as e:
             st.error(f"Prediction error: {e}")
 
