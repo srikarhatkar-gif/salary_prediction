@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 
 # -------------------------------
-# Load model and encoders safely
+# Load model and encoders
 # -------------------------------
 @st.cache_resource
 def load_model():
@@ -19,6 +19,17 @@ def load_encoders():
 
 model = load_model()
 label_encoders = load_encoders()
+
+# -------------------------------
+# Load dataset for dropdown
+# -------------------------------
+@st.cache_data
+def load_job_titles():
+    df = pd.read_csv('Salary_Data.csv')
+    job_titles = sorted(df['Job Title'].dropna().unique())
+    return job_titles
+
+job_title_list = load_job_titles()
 
 # -------------------------------
 # App UI
@@ -38,26 +49,20 @@ education_level = st.selectbox(
     ['High School', "Bachelor's", "Master's", 'PhD']
 )
 
-job_title = st.text_input('Job Title (e.g., Software Engineer)')
+job_title = st.selectbox('Job Title', job_title_list)
 
 years_of_experience = st.slider('Years of Experience', 0, 40, 5)
 
 # -------------------------------
-# Preprocessing function
+# Preprocessing
 # -------------------------------
 def preprocess_input(age, gender, education_level, job_title, years):
     try:
         encoded_gender = label_encoders['Gender'].transform([gender])[0]
         encoded_education = label_encoders['Education Level'].transform([education_level])[0]
+        encoded_job_title = label_encoders['Job Title'].transform([job_title])[0]
     except Exception as e:
         st.error(f"Encoding error: {e}")
-        return None
-
-    # Handle job title safely
-    if job_title in label_encoders['Job Title'].classes_:
-        encoded_job_title = label_encoders['Job Title'].transform([job_title])[0]
-    else:
-        st.warning("⚠️ Job title not recognized. Try common titles like 'Software Engineer'.")
         return None
 
     input_df = pd.DataFrame(
@@ -71,19 +76,16 @@ def preprocess_input(age, gender, education_level, job_title, years):
 # Prediction
 # -------------------------------
 if st.button('Predict Salary'):
-    if job_title.strip() == "":
-        st.error("Please enter a job title.")
-    else:
-        processed_input = preprocess_input(
-            age, gender, education_level, job_title, years_of_experience
-        )
+    processed_input = preprocess_input(
+        age, gender, education_level, job_title, years_of_experience
+    )
 
-        if processed_input is not None:
-            try:
-                prediction = model.predict(processed_input)[0]
-                st.success(f"💵 Predicted Salary: ${prediction:,.2f}")
-            except Exception as e:
-                st.error(f"Prediction error: {e}")
+    if processed_input is not None:
+        try:
+            prediction = model.predict(processed_input)[0]
+            st.success(f"💵 Predicted Salary: ${prediction:,.2f}")
+        except Exception as e:
+            st.error(f"Prediction error: {e}")
 
 # -------------------------------
 # Footer
